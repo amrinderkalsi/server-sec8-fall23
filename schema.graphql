@@ -14,3 +14,7 @@ type Query {
     name: String,
     issueList: [Issue]
 }
+
+type Mutation {
+    sendName(name: String): String
+}

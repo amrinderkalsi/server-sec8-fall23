@@ -59,6 +59,11 @@ const resolvers = {
       return issues;
     }
   },
+  Mutation: {
+    sendName: (_root ,{name}) => {
+      return name + '!';
+    }
+  },
   GraphQlDate: GraphQlDateResolver
 }
 
