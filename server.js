@@ -3,40 +3,22 @@ import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import { readFile } from 'node:fs/promises';
 import { GraphQLScalarType } from 'graphql';
+import { connectToDb, getDb} from './db.js'
+
+let db;
 
 const app = express();
 
 app.use(express.json());
 
-const issues = [
-    {
-      id: 1, 
-      status: 'Open', 
-      owner: 'Ravan',
-      created: new Date('2016-08-15'), 
-      effort: 5, 
-      completionDate: undefined,
-      title: 'Error in console when clicking Add',
-    },
-    {
-      id: 2, 
-      status: 'Assigned', 
-      owner: 'Eddie',
-      created: new Date('2016-08-16'), 
-      effort: 14, 
-      completionDate: new Date('2016-08-30'),
-      title: 'Missing bottom border on panel',
-    },
-];
-
-app.get('/api/issues', (req, res) => {
-    console.log('New request');
-    const metaData = {totalCount: issues.length};
-    res.json({
-        "metaData": metaData,
-        "records": issues
-    });
-});
+// app.get('/api/issues', (req, res) => {
+//     console.log('New request');
+//     const metaData = {totalCount: issues.length};
+//     res.json({
+//         "metaData": metaData,
+//         "records": issues
+//     });
+// });
 
 const GraphQlDateResolver = new GraphQLScalarType({
   name: 'GraphQlDate',
@@ -83,6 +65,14 @@ await apolloServer.start();
 
 app.use('/graphql', expressMiddleware(apolloServer));
 
-app.listen(5002, () => {
-    console.log('Server started on port 5002');
+
+connectToDb((url, err) => {
+  if(!err) {
+    app.listen(5002, () => {
+        console.log('Express Server started on port 5002');
+        console.log('GraphQl Server started on port http://localhost:5002/graphql');
+        console.log('MongoDb connected to ', url);
+    });
+    db = getDb;
+  }
 });
