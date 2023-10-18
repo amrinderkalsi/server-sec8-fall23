@@ -32,26 +32,37 @@ const GraphQlDateResolver = new GraphQLScalarType({
   }
 });
 
+const getNextSequence = async () => {
+  const count = await db.collection('issues').find({}).count();
+  return count + 1;
+}
+
+const issueAdd = async (_root, {issue}) => {
+  issue.id = await getNextSequence();
+  issue.status = 'New';
+  issue.created = new Date();
+  const result = await db.collection('issues').insertOne(issue);
+  const savedIssue = await db.collection('issues').findOne({_id: result.insertedId});
+  return savedIssue;
+}
+
+const issueList = async () => {
+  const issues = await db.collection('issues').find({}).toArray();
+  return issues;
+}
+
 const typeDefs = await readFile('./schema.graphql', 'utf8');
 
 const resolvers = {
   Query: {
     name: () => 'Erick',
-    issueList: () => {
-      return issues;
-    }
+    issueList: issueList
   },
   Mutation: {
     sendName: (_root ,{name}) => {
       return name + '!';
     },
-    issueAdd: (_root, {issue}) => {
-      issue.id = issues.length + 1;
-      issue.status = 'New';
-      issue.created = new Date();
-      issues.push(issue);
-      return issue;
-    }
+    issueAdd: issueAdd
   },
   GraphQlDate: GraphQlDateResolver
 }
@@ -73,6 +84,6 @@ connectToDb((url, err) => {
         console.log('GraphQl Server started on port http://localhost:5002/graphql');
         console.log('MongoDb connected to ', url);
     });
-    db = getDb;
+    db = getDb();
   }
 });
