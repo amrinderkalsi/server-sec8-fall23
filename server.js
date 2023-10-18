@@ -62,6 +62,13 @@ const resolvers = {
   Mutation: {
     sendName: (_root ,{name}) => {
       return name + '!';
+    },
+    issueAdd: (_root, {issue}) => {
+      issue.id = issues.length + 1;
+      issue.status = 'New';
+      issue.created = new Date();
+      issues.push(issue);
+      return issue;
     }
   },
   GraphQlDate: GraphQlDateResolver
